@@ -1,0 +1,37 @@
+name: Test python-version-file input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          python-version-file: "actions/hardened/pdm-project--setup-pdm/v4.1/tests/fixtures/.python-version"
+          version: "2.22.3"
+      - name: Assert python-version output is set
+        env:
+          PY_VERSION: ${{ steps.action.outputs.python-version }}
+        run: |
+          echo "python-version: $PY_VERSION"
+          if [ -z "$PY_VERSION" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          echo "PASS: python-version=$PY_VERSION"
+      - name: Assert pdm-version output is set
+        env:
+          PDM_VERSION: ${{ steps.action.outputs.pdm-version }}
+        run: |
+          echo "pdm-version: $PDM_VERSION"
+          if [ -z "$PDM_VERSION" ]; then
+            echo "FAIL: pdm-version output is empty"
+            exit 1
+          fi
+          echo "PASS: pdm-version=$PDM_VERSION"
+      - name: Assert pdm is callable
+        run: |
+          pdm --version
+          echo "PASS: pdm is on PATH"

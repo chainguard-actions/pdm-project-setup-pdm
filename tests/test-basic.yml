@@ -1,0 +1,65 @@
+name: Test basic usage - python-version and pdm version
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          python-version: "3.11"
+          version: "2.22.3"
+      - name: Assert pdm-version output
+        env:
+          PDM_VERSION: ${{ steps.action.outputs.pdm-version }}
+        run: |
+          echo "pdm-version: $PDM_VERSION"
+          if [ -z "$PDM_VERSION" ]; then
+            echo "FAIL: pdm-version output is empty"
+            exit 1
+          fi
+          echo "PASS: pdm-version=$PDM_VERSION"
+      - name: Assert pdm-bin output
+        env:
+          PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
+        run: |
+          echo "pdm-bin: $PDM_BIN"
+          if [ -z "$PDM_BIN" ]; then
+            echo "FAIL: pdm-bin output is empty"
+            exit 1
+          fi
+          if [ ! -f "$PDM_BIN" ]; then
+            echo "FAIL: pdm-bin path does not exist: $PDM_BIN"
+            exit 1
+          fi
+          echo "PASS: pdm-bin=$PDM_BIN"
+      - name: Assert python-version output
+        env:
+          PY_VERSION: ${{ steps.action.outputs.python-version }}
+        run: |
+          echo "python-version: $PY_VERSION"
+          if [ -z "$PY_VERSION" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          echo "PASS: python-version=$PY_VERSION"
+      - name: Assert python-path output
+        env:
+          PY_PATH: ${{ steps.action.outputs.python-path }}
+        run: |
+          echo "python-path: $PY_PATH"
+          if [ -z "$PY_PATH" ]; then
+            echo "FAIL: python-path output is empty"
+            exit 1
+          fi
+          if [ ! -f "$PY_PATH" ]; then
+            echo "FAIL: python-path does not exist: $PY_PATH"
+            exit 1
+          fi
+          echo "PASS: python-path=$PY_PATH"
+      - name: Assert pdm is callable
+        run: |
+          pdm --version
+          echo "PASS: pdm is on PATH"
