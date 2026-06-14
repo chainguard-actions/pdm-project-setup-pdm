@@ -8,6 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| v4 | [`v4`](https://github.com/chainguard-actions/pdm-project-setup-pdm/tree/v4) | [`94a8231`](https://github.com/pdm-project/setup-pdm/commit/94a823180e06fcde4ad29308721954a521c96ed0) |
 | v4.1 | [`v4.1`](https://github.com/chainguard-actions/pdm-project-setup-pdm/tree/v4.1) | [`568ddd6`](https://github.com/pdm-project/setup-pdm/commit/568ddd69406b30de1774ec0044b73ae06e716aa4) |
 | v4.4 | [`v4.4`](https://github.com/chainguard-actions/pdm-project-setup-pdm/tree/v4.4) | [`94a8231`](https://github.com/pdm-project/setup-pdm/commit/94a823180e06fcde4ad29308721954a521c96ed0) |
 
