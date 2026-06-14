@@ -1,0 +1,48 @@
+name: Test architecture input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          python-version: "3.11"
+          architecture: "x64"
+          version: "2.22.3"
+      - name: Assert pdm-version output
+        env:
+          ACTUAL: ${{ steps.action.outputs.pdm-version }}
+        run: |
+          echo "actual pdm-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: pdm-version output is empty"
+            exit 1
+          fi
+          echo "PASS: pdm-version=$ACTUAL"
+      - name: Assert python-version output
+        env:
+          ACTUAL: ${{ steps.action.outputs.python-version }}
+        run: |
+          echo "actual python-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: python-version output is empty"
+            exit 1
+          fi
+          echo "PASS: python-version=$ACTUAL"
+      - name: Assert pdm-bin output
+        env:
+          ACTUAL: ${{ steps.action.outputs.pdm-bin }}
+        run: |
+          echo "actual pdm-bin: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: pdm-bin output is empty"
+            exit 1
+          fi
+          if [ ! -f "$ACTUAL" ]; then
+            echo "FAIL: pdm-bin path does not exist: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: pdm-bin=$ACTUAL"
