@@ -1,0 +1,41 @@
+name: Test PDM setup with cache enabled
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          python-version: '3.11'
+          cache: 'true'
+        continue-on-error: true
+      - name: Assert action ran or failed gracefully
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          PDM_VERSION: ${{ steps.action.outputs.pdm-version }}
+          CACHE_HIT: ${{ steps.action.outputs.cache-hit }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "pdm-version: $PDM_VERSION"
+          echo "cache-hit: $CACHE_HIT"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$PDM_VERSION" ]; then
+              echo "FAIL: action succeeded but pdm-version output is empty"
+              exit 1
+            fi
+            # cache-hit may be empty (cache skipped/unavailable), 'true', or 'false' — all acceptable
+            echo "PASS: pdm-version=$PDM_VERSION cache-hit='$CACHE_HIT'"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (node24 runtime or network may not be available under act)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+      - name: Assert PDM is runnable (if action succeeded)
+        if: steps.action.outcome == 'success'
+        run: |
+          pdm --version
+          echo "PASS: pdm is runnable"

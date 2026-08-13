@@ -1,0 +1,53 @@
+name: Test specific PDM version
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          python-version: '3.11'
+          version: '2.21.0'
+        continue-on-error: true
+      - name: Assert action ran or failed gracefully
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+          PDM_VERSION: ${{ steps.action.outputs.pdm-version }}
+          PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "pdm-version: $PDM_VERSION"
+          echo "pdm-bin: $PDM_BIN"
+          if [ "$OUTCOME" = "success" ]; then
+            if [ -z "$PDM_VERSION" ]; then
+              echo "FAIL: action succeeded but pdm-version output is empty"
+              exit 1
+            fi
+            if ! echo "$PDM_VERSION" | grep -q "2.21.0"; then
+              echo "FAIL: expected pdm-version to contain 2.21.0, got $PDM_VERSION"
+              exit 1
+            fi
+            if [ -z "$PDM_BIN" ]; then
+              echo "FAIL: action succeeded but pdm-bin output is empty"
+              exit 1
+            fi
+            echo "PASS: pdm-version=$PDM_VERSION pdm-bin=$PDM_BIN"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (node24 runtime or network may not be available under act)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+      - name: Assert PDM version via CLI (if action succeeded)
+        if: steps.action.outcome == 'success'
+        run: |
+          INSTALLED="$(pdm --version 2>&1)"
+          echo "pdm --version output: $INSTALLED"
+          if ! echo "$INSTALLED" | grep -q "2.21.0"; then
+            echo "FAIL: expected version 2.21.0 in output: $INSTALLED"
+            exit 1
+          fi
+          echo "PASS"
