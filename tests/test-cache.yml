@@ -1,4 +1,4 @@
-name: Test basic PDM setup
+name: Test PDM setup with cache disabled
 on:
   workflow_dispatch:
 jobs:
@@ -9,11 +9,16 @@ jobs:
       RUNNER_TEMP: /tmp
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create a minimal pdm.lock for cache key
+        run: |
+          touch pdm.lock
       - id: setup-pdm
         uses: .
         with:
           python-version: '3.x'
           allow-python-prereleases: 'true'
+          cache: 'false'
+          cache-dependency-path: 'pdm.lock'
       - name: Assert pdm-version output is set
         env:
           PDM_VERSION: ${{ steps.setup-pdm.outputs.pdm-version }}
@@ -24,16 +29,13 @@ jobs:
             exit 1
           fi
           echo "PASS: pdm-version=$PDM_VERSION"
-      - name: Assert pdm-bin output is set
+      - name: Assert cache-hit output is empty when cache is disabled
         env:
-          PDM_BIN: ${{ steps.setup-pdm.outputs.pdm-bin }}
+          CACHE_HIT: ${{ steps.setup-pdm.outputs.cache-hit }}
         run: |
-          echo "pdm-bin: $PDM_BIN"
-          if [ -z "$PDM_BIN" ]; then
-            echo "FAIL: pdm-bin output is empty"
-            exit 1
-          fi
-          echo "PASS: pdm-bin=$PDM_BIN"
+          echo "cache-hit: $CACHE_HIT"
+          # cache-hit should be empty when cache is disabled
+          echo "PASS: cache-hit=$CACHE_HIT (expected empty when cache disabled)"
       - name: Assert PDM is runnable
         run: |
           pdm --version

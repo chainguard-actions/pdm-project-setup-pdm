@@ -1,0 +1,46 @@
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+name: Test Action
+
+permissions: {}
+
+jobs:
+  Testing:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    name: Test the action
+    steps:
+      - uses: actions/checkout@a37ce9120846195fa4ece8f58b268e6043cb2f26 # v3
+      - name: Setup PDM
+        uses: ./
+        id: setup-pdm
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: true
+          allow-python-prereleases: true
+
+      - name: Check output
+        env:
+          PDM_BIN: ${{ steps.setup-pdm.outputs.pdm-bin }}
+          PDM_VERSION: ${{ steps.setup-pdm.outputs.pdm-version }}
+          PYTHON_PATH: ${{ steps.setup-pdm.outputs.python-path }}
+          PYTHON_VERSION_OUT: ${{ steps.setup-pdm.outputs.python-version }}
+        run: |
+          echo "$PDM_BIN"
+          echo "$PDM_VERSION"
+          echo "$PYTHON_PATH"
+          echo "$PYTHON_VERSION_OUT"
+
+      - name: Install dependencies
+        run: pdm install -v && pdm info
+
+      - name: Verify python version
+        run: pdm run python test.py
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}

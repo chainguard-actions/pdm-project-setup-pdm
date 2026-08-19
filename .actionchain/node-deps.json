@@ -1,0 +1,20 @@
+{
+  "status": "self_contained",
+  "entries": [
+    {
+      "path": "dist/setup-pdm.js",
+      "status": "self_contained",
+      "warnings": [
+        "ignored-dynamic-import: Importing \"encoding\" was allowed even though it could not be resolved because dynamic import failures appear to be handled here:",
+        "unsupported-require-call: This call to \"require\" will not be bundled because the argument is not a string literal"
+      ]
+    },
+    {
+      "path": "dist/cache-save.js",
+      "status": "self_contained",
+      "warnings": [
+        "ignored-dynamic-import: Importing \"encoding\" was allowed even though it could not be resolved because dynamic import failures appear to be handled here:"
+      ]
+    }
+  ]
+}

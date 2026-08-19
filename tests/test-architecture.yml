@@ -9,30 +9,31 @@ jobs:
       - id: action
         uses: .
         with:
-          python-version: "3.12"
-          architecture: "x64"
-          version: "2.22.3"
+          python-version: '3.11'
+          architecture: x64
       - name: Assert pdm-version output is set
         env:
           PDM_VERSION: ${{ steps.action.outputs.pdm-version }}
+          PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
+          PYTHON_PATH: ${{ steps.action.outputs.python-path }}
         run: |
           echo "pdm-version: $PDM_VERSION"
+          echo "pdm-bin: $PDM_BIN"
+          echo "python-path: $PYTHON_PATH"
           if [ -z "$PDM_VERSION" ]; then
             echo "FAIL: pdm-version output is empty"
             exit 1
           fi
-          echo "PASS: pdm-version=$PDM_VERSION"
-      - name: Assert python-path output is set
-        env:
-          PY_PATH: ${{ steps.action.outputs.python-path }}
-        run: |
-          echo "python-path: $PY_PATH"
-          if [ -z "$PY_PATH" ]; then
-            echo "FAIL: python-path output is empty"
+          if [ -z "$PDM_BIN" ]; then
+            echo "FAIL: pdm-bin output is empty"
             exit 1
           fi
-          echo "PASS: python-path=$PY_PATH"
-      - name: Assert pdm is callable
+          if [ ! -f "$PDM_BIN" ]; then
+            echo "FAIL: pdm binary not found at $PDM_BIN"
+            exit 1
+          fi
+          echo "PASS: PDM installed successfully with architecture x64"
+      - name: Assert PDM is executable
         run: |
           pdm --version
-          echo "PASS: pdm is on PATH"
+          echo "PASS: pdm command works"

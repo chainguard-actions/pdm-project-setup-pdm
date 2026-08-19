@@ -1,3 +1,4 @@
+---
 name: Setup PDM
 description: Set up a specific version of PDM and uses a given Python version to work on
 author: Frost Ming
@@ -51,11 +52,11 @@ outputs:
   cache-hit:
     description: Whether or not there was a cache hit.
 runs:
+  pre: chainguard-phonehome.js
   using: node20
   main: dist/setup-pdm.js
   post: dist/cache-save.js
   post-if: success()
-  pre: chainguard-phonehome.js
 branding:
   icon: code
   color: green

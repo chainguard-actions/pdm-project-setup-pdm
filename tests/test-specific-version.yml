@@ -1,4 +1,4 @@
-name: Test basic PDM setup
+name: Test specific PDM version
 on:
   workflow_dispatch:
 jobs:
@@ -14,7 +14,8 @@ jobs:
         with:
           python-version: '3.x'
           allow-python-prereleases: 'true'
-      - name: Assert pdm-version output is set
+          version: '2.15.4'
+      - name: Assert pdm-version matches requested version
         env:
           PDM_VERSION: ${{ steps.setup-pdm.outputs.pdm-version }}
         run: |
@@ -23,18 +24,17 @@ jobs:
             echo "FAIL: pdm-version output is empty"
             exit 1
           fi
-          echo "PASS: pdm-version=$PDM_VERSION"
-      - name: Assert pdm-bin output is set
-        env:
-          PDM_BIN: ${{ steps.setup-pdm.outputs.pdm-bin }}
-        run: |
-          echo "pdm-bin: $PDM_BIN"
-          if [ -z "$PDM_BIN" ]; then
-            echo "FAIL: pdm-bin output is empty"
+          if [ "$PDM_VERSION" != "2.15.4" ]; then
+            echo "FAIL: expected pdm-version=2.15.4, got $PDM_VERSION"
             exit 1
           fi
-          echo "PASS: pdm-bin=$PDM_BIN"
-      - name: Assert PDM is runnable
+          echo "PASS: pdm-version=$PDM_VERSION"
+      - name: Assert PDM reports correct version
         run: |
-          pdm --version
-          echo "PASS: pdm is on PATH and runnable"
+          INSTALLED=$(pdm --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          echo "installed version: $INSTALLED"
+          if [ "$INSTALLED" != "2.15.4" ]; then
+            echo "FAIL: expected 2.15.4, got $INSTALLED"
+            exit 1
+          fi
+          echo "PASS: pdm version matches"
