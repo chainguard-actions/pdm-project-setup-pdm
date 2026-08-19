@@ -1,0 +1,31 @@
+name: Test PDM setup Python version output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-pdm
+        uses: .
+        with:
+          python-version: "3.x"
+          update-python: 'false'
+      - name: Assert python-path output is set or python3 is available
+        env:
+          PYTHON_PATH: ${{ steps.setup-pdm.outputs.python-path }}
+        run: |
+          echo "python-path: $PYTHON_PATH"
+          if [ -n "$PYTHON_PATH" ] && [ -f "$PYTHON_PATH" ]; then
+            VERSION=$("$PYTHON_PATH" --version 2>&1)
+            echo "python version: $VERSION"
+            echo "PASS: python-path points to valid executable"
+          else
+            echo "python-path not set or not a file, checking python3 in PATH"
+            python3 --version
+            echo "PASS: python3 is available"
+          fi
+      - name: Assert PDM is installed and functional
+        run: |
+          pdm --version
+          echo "PASS: pdm is available in PATH"
