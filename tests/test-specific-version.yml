@@ -1,0 +1,36 @@
+name: Test specific PDM version installation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup-pdm
+        uses: .
+        with:
+          python-version: '3.11'
+          version: '2.12.4'
+      - name: Assert pdm-version output matches requested version
+        env:
+          ACTUAL: ${{ steps.setup-pdm.outputs.pdm-version }}
+        run: |
+          echo "actual pdm-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: pdm-version output is empty"
+            exit 1
+          fi
+          if [ "$ACTUAL" != "2.12.4" ]; then
+            echo "FAIL: expected pdm-version '2.12.4' but got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS: pdm-version=$ACTUAL"
+      - name: Assert PDM version via CLI
+        run: |
+          VERSION=$(pdm --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          echo "pdm --version reports: $VERSION"
+          if [ "$VERSION" != "2.12.4" ]; then
+            echo "FAIL: expected CLI version '2.12.4' but got '$VERSION'"
+            exit 1
+          fi
+          echo "PASS: CLI version matches"

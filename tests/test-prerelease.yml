@@ -1,4 +1,4 @@
-name: Test basic PDM setup
+name: Test PDM setup with prerelease allowed
 on:
   workflow_dispatch:
 jobs:
@@ -10,6 +10,7 @@ jobs:
         uses: .
         with:
           python-version: '3.11'
+          prerelease: 'true'
       - name: Assert pdm-version output is set
         env:
           ACTUAL: ${{ steps.setup-pdm.outputs.pdm-version }}

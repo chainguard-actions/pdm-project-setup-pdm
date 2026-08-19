@@ -1,4 +1,4 @@
-name: Test basic PDM setup
+name: Test PDM setup with cache-related inputs
 on:
   workflow_dispatch:
 jobs:
@@ -10,6 +10,8 @@ jobs:
         uses: .
         with:
           python-version: '3.11'
+          cache: 'false'
+          cache-dependency-path: 'tests/fixtures/pdm.lock'
       - name: Assert pdm-version output is set
         env:
           ACTUAL: ${{ steps.setup-pdm.outputs.pdm-version }}
@@ -30,7 +32,7 @@ jobs:
             exit 1
           fi
           echo "PASS: pdm-bin=$ACTUAL"
-      - name: Assert PDM is runnable via PATH
+      - name: Assert PDM is runnable
         run: |
           pdm --version
           echo "PASS: pdm is on PATH and runnable"
