@@ -6,10 +6,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Create .python-version file
+      - name: Create python version file
         run: |
           echo "3.11" > "$GITHUB_WORKSPACE/.python-version"
-          cat "$GITHUB_WORKSPACE/.python-version"
       - id: action
         uses: .
         with:
@@ -42,4 +41,5 @@ jobs:
             echo "FAIL: pdm not found on PATH"
             exit 1
           fi
-          echo "PASS: pdm found at $(command -v pdm)"
+          pdm --version
+          echo "PASS"

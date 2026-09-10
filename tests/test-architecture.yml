@@ -39,4 +39,5 @@ jobs:
             echo "FAIL: pdm not found on PATH"
             exit 1
           fi
-          echo "PASS: pdm found at $(command -v pdm)"
+          pdm --version
+          echo "PASS"
