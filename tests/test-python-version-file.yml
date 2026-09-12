@@ -6,22 +6,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Create python version file
-        run: |
-          echo "3.11" > "$GITHUB_WORKSPACE/.python-version"
       - id: action
         uses: .
         with:
-          python-version-file: .python-version
-      - name: Assert pdm-version output is set
+          python-version-file: hardened/tests/fixtures/python-version-file/.python-version
+      - name: Assert outputs are set when using python-version-file
         env:
           PDM_VERSION: ${{ steps.action.outputs.pdm-version }}
           PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
           PYTHON_VERSION: ${{ steps.action.outputs.python-version }}
+          PYTHON_PATH: ${{ steps.action.outputs.python-path }}
         run: |
           echo "pdm-version: $PDM_VERSION"
           echo "pdm-bin: $PDM_BIN"
           echo "python-version: $PYTHON_VERSION"
+          echo "python-path: $PYTHON_PATH"
           if [ -z "$PDM_VERSION" ]; then
             echo "FAIL: pdm-version output is empty"
             exit 1
@@ -34,11 +33,26 @@ jobs:
             echo "FAIL: python-version output is empty"
             exit 1
           fi
-          echo "PASS"
+          echo "PASS: all outputs set when using python-version-file"
       - name: Assert PDM is executable
+        env:
+          PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
         run: |
-          if ! pdm --version; then
-            echo "FAIL: pdm command not found or not executable"
+          echo "pdm-bin: $PDM_BIN"
+          if [ ! -x "$PDM_BIN" ]; then
+            echo "FAIL: pdm-bin is not executable"
             exit 1
           fi
+          "$PDM_BIN" --version
           echo "PASS"
+      - name: Assert Python version matches file
+        env:
+          PYTHON_VERSION: ${{ steps.action.outputs.python-version }}
+        run: |
+          echo "python-version: $PYTHON_VERSION"
+          # The version file specifies 3.11, so the installed version should start with 3.11
+          if ! echo "$PYTHON_VERSION" | grep -q "^3\.11"; then
+            echo "FAIL: expected Python 3.11.x but got $PYTHON_VERSION"
+            exit 1
+          fi
+          echo "PASS: Python version matches python-version-file"

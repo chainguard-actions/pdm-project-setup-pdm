@@ -16,10 +16,12 @@ jobs:
           PDM_VERSION: ${{ steps.action.outputs.pdm-version }}
           PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
           PYTHON_VERSION: ${{ steps.action.outputs.python-version }}
+          PYTHON_PATH: ${{ steps.action.outputs.python-path }}
         run: |
           echo "pdm-version: $PDM_VERSION"
           echo "pdm-bin: $PDM_BIN"
           echo "python-version: $PYTHON_VERSION"
+          echo "python-path: $PYTHON_PATH"
           if [ -z "$PDM_VERSION" ]; then
             echo "FAIL: pdm-version output is empty"
             exit 1
@@ -32,11 +34,15 @@ jobs:
             echo "FAIL: python-version output is empty"
             exit 1
           fi
-          echo "PASS"
+          echo "PASS: all outputs set when architecture=x64"
       - name: Assert PDM is executable
+        env:
+          PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
         run: |
-          if ! pdm --version; then
-            echo "FAIL: pdm command not found or not executable"
+          echo "pdm-bin: $PDM_BIN"
+          if [ ! -x "$PDM_BIN" ]; then
+            echo "FAIL: pdm-bin is not executable"
             exit 1
           fi
+          "$PDM_BIN" --version
           echo "PASS"
