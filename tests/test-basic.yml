@@ -1,4 +1,4 @@
-name: Test basic PDM setup
+name: Test basic usage
 on:
   workflow_dispatch:
 jobs:
@@ -6,31 +6,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: setup-pdm
+      - id: action
         uses: .
         with:
-          python-version: '3.11'
-      - name: Assert pdm-version output is set
+          python-version: '3.12'
+      - name: Assert outputs
         env:
-          ACTUAL: ${{ steps.setup-pdm.outputs.pdm-version }}
+          PY_VERSION: ${{ steps.action.outputs.python-version }}
+          PY_PATH: ${{ steps.action.outputs.python-path }}
+          PDM_VERSION: ${{ steps.action.outputs.pdm-version }}
+          PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
         run: |
-          echo "actual pdm-version: $ACTUAL"
-          if [ -z "$ACTUAL" ]; then
-            echo "FAIL: pdm-version output is empty"
-            exit 1
-          fi
-          echo "PASS: pdm-version=$ACTUAL"
-      - name: Assert pdm-bin output is set
+          echo "python-version: $PY_VERSION"
+          echo "python-path: $PY_PATH"
+          echo "pdm-version: $PDM_VERSION"
+          echo "pdm-bin: $PDM_BIN"
+          case "$PY_VERSION" in
+            3.12*) ;;
+            *) echo "FAIL: python-version should start with 3.12"; exit 1 ;;
+          esac
+          if [ -z "$PDM_VERSION" ]; then echo "FAIL: pdm-version empty"; exit 1; fi
+          case "$PDM_BIN" in
+            */pdm) ;;
+            *) echo "FAIL: pdm-bin should end with /pdm"; exit 1 ;;
+          esac
+          if [ -z "$PY_PATH" ] || [ ! -x "$PY_PATH" ]; then echo "FAIL: python-path not executable"; exit 1; fi
+          echo "PASS"
+      - name: Assert pdm on PATH
         env:
-          ACTUAL: ${{ steps.setup-pdm.outputs.pdm-bin }}
+          PDM_VERSION: ${{ steps.action.outputs.pdm-version }}
         run: |
-          echo "actual pdm-bin: $ACTUAL"
-          if [ -z "$ACTUAL" ]; then
-            echo "FAIL: pdm-bin output is empty"
-            exit 1
-          fi
-          echo "PASS: pdm-bin=$ACTUAL"
-      - name: Assert PDM is runnable via PATH
-        run: |
-          pdm --version
-          echo "PASS: pdm is on PATH and runnable"
+          which pdm || { echo "FAIL: pdm not on PATH"; exit 1; }
+          pdm --version | tee /tmp/v.txt
+          grep -qF "$PDM_VERSION" /tmp/v.txt || { echo "FAIL: pdm --version doesn't match output"; exit 1; }
+          python --version 2>&1 | grep -q "3.12" || { echo "FAIL: python is not 3.12"; exit 1; }
+          echo "PASS"

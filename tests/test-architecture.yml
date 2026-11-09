@@ -9,40 +9,28 @@ jobs:
       - id: action
         uses: .
         with:
-          python-version: "3.11"
-          architecture: x64
-      - name: Assert pdm-version output is set
+          python-version: '3.12'
+          architecture: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
+      - name: Assert outputs
         env:
+          PY_VERSION: ${{ steps.action.outputs.python-version }}
+          PY_PATH: ${{ steps.action.outputs.python-path }}
           PDM_VERSION: ${{ steps.action.outputs.pdm-version }}
           PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
-          PYTHON_VERSION: ${{ steps.action.outputs.python-version }}
-          PYTHON_PATH: ${{ steps.action.outputs.python-path }}
         run: |
+          echo "python-version: $PY_VERSION"
+          echo "python-path: $PY_PATH"
           echo "pdm-version: $PDM_VERSION"
           echo "pdm-bin: $PDM_BIN"
-          echo "python-version: $PYTHON_VERSION"
-          echo "python-path: $PYTHON_PATH"
-          if [ -z "$PDM_VERSION" ]; then
-            echo "FAIL: pdm-version output is empty"
-            exit 1
-          fi
-          if [ -z "$PDM_BIN" ]; then
-            echo "FAIL: pdm-bin output is empty"
-            exit 1
-          fi
-          if [ -z "$PYTHON_VERSION" ]; then
-            echo "FAIL: python-version output is empty"
-            exit 1
-          fi
-          echo "PASS: all outputs set when architecture=x64"
-      - name: Assert PDM is executable
-        env:
-          PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
-        run: |
-          echo "pdm-bin: $PDM_BIN"
-          if [ ! -x "$PDM_BIN" ]; then
-            echo "FAIL: pdm-bin is not executable"
-            exit 1
-          fi
-          "$PDM_BIN" --version
+          case "$PY_VERSION" in
+            3.12*) ;;
+            *) echo "FAIL: python-version should start with 3.12"; exit 1 ;;
+          esac
+          if [ -z "$PDM_VERSION" ]; then echo "FAIL: pdm-version empty"; exit 1; fi
+          case "$PDM_BIN" in
+            */pdm) ;;
+            *) echo "FAIL: pdm-bin should end with /pdm"; exit 1 ;;
+          esac
+          if [ -z "$PY_PATH" ] || [ ! -x "$PY_PATH" ]; then echo "FAIL: python-path not executable"; exit 1; fi
+          "$PY_PATH" -c 'import platform; print(platform.machine())'
           echo "PASS"

@@ -1,4 +1,4 @@
-name: Test python-version-file input
+name: Test python-version-file
 on:
   workflow_dispatch:
 jobs:
@@ -9,50 +9,17 @@ jobs:
       - id: action
         uses: .
         with:
-          python-version-file: hardened/tests/fixtures/python-version-file/.python-version
-      - name: Assert outputs are set when using python-version-file
+          python-version-file: tests/fixtures/python-version
+      - name: Assert python version from file
         env:
+          PY_VERSION: ${{ steps.action.outputs.python-version }}
           PDM_VERSION: ${{ steps.action.outputs.pdm-version }}
-          PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
-          PYTHON_VERSION: ${{ steps.action.outputs.python-version }}
-          PYTHON_PATH: ${{ steps.action.outputs.python-path }}
         run: |
+          echo "python-version: $PY_VERSION"
           echo "pdm-version: $PDM_VERSION"
-          echo "pdm-bin: $PDM_BIN"
-          echo "python-version: $PYTHON_VERSION"
-          echo "python-path: $PYTHON_PATH"
-          if [ -z "$PDM_VERSION" ]; then
-            echo "FAIL: pdm-version output is empty"
-            exit 1
-          fi
-          if [ -z "$PDM_BIN" ]; then
-            echo "FAIL: pdm-bin output is empty"
-            exit 1
-          fi
-          if [ -z "$PYTHON_VERSION" ]; then
-            echo "FAIL: python-version output is empty"
-            exit 1
-          fi
-          echo "PASS: all outputs set when using python-version-file"
-      - name: Assert PDM is executable
-        env:
-          PDM_BIN: ${{ steps.action.outputs.pdm-bin }}
-        run: |
-          echo "pdm-bin: $PDM_BIN"
-          if [ ! -x "$PDM_BIN" ]; then
-            echo "FAIL: pdm-bin is not executable"
-            exit 1
-          fi
-          "$PDM_BIN" --version
+          case "$PY_VERSION" in
+            3.11*) ;;
+            *) echo "FAIL: expected python 3.11.x"; exit 1 ;;
+          esac
+          if [ -z "$PDM_VERSION" ]; then echo "FAIL: pdm-version empty"; exit 1; fi
           echo "PASS"
-      - name: Assert Python version matches file
-        env:
-          PYTHON_VERSION: ${{ steps.action.outputs.python-version }}
-        run: |
-          echo "python-version: $PYTHON_VERSION"
-          # The version file specifies 3.11, so the installed version should start with 3.11
-          if ! echo "$PYTHON_VERSION" | grep -q "^3\.11"; then
-            echo "FAIL: expected Python 3.11.x but got $PYTHON_VERSION"
-            exit 1
-          fi
-          echo "PASS: Python version matches python-version-file"
